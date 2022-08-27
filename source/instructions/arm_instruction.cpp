@@ -17,12 +17,14 @@ int ArmInstruction::run() {
     return 0;
 }
 
-ArmInstruction ArmInstruction::GetInstruction(uint32_t instruction, Cpu *cpu) {
+ArmInstruction* ArmInstruction::GetInstruction(uint32_t instruction, Cpu *cpu) {
     if(regex_match(static_cast<std::bitset<32>>(instruction).to_string(), std::regex(BXInstruction::operator_mask))){
-        return BXInstruction(instruction, cpu);
+        return new BXInstruction(instruction, cpu);
     }
     throw UnknownInstruction();
 }
+
+BXInstruction::BXInstruction(uint32_t instruction, Cpu *cpu) : ArmInstruction(instruction, cpu){};
 
 int BXInstruction::run() {
     if(ArmInstruction::run()) return -1;
@@ -32,7 +34,4 @@ int BXInstruction::run() {
     return 0;
 }
 
-BXInstruction::BXInstruction(uint32_t instruction, Cpu *cpu) : ArmInstruction(instruction, cpu) {
-
-}
 

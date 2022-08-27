@@ -20,7 +20,7 @@ protected:
     Cpu *cpu;
     uint32_t instruction;
 public:
-    static ArmInstruction GetInstruction(uint32_t instruction, Cpu *cpu);
+    static ArmInstruction* GetInstruction(uint32_t instruction, Cpu *cpu);
     static std::string operator_mask;
 
     ArmInstruction(uint32_t instruction, Cpu *cpu);
