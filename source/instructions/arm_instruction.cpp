@@ -21,6 +21,9 @@ ArmInstruction* ArmInstruction::GetInstruction(uint32_t instruction, Cpu *cpu) {
     if(regex_match(static_cast<std::bitset<32>>(instruction).to_string(), std::regex(BXInstruction::operator_mask))){
         return new BXInstruction(instruction, cpu);
     }
+    if(regex_match(static_cast<std::bitset<32>>(instruction).to_string(), std::regex(MULInstruction::operator_mask))){
+        return new MULInstruction(instruction, cpu);
+    }
     throw UnknownInstruction();
 }
 
@@ -30,8 +33,23 @@ int BXInstruction::run() {
     if(ArmInstruction::run()) return -1;
 
     cpu->cpu_mode = instruction & 0x1 ? THUMB : ARM;
-    cpu->registers.PC = number_to_register(cpu, instruction & 0x1111);
+    cpu->registers.PC = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
     return 0;
 }
 
 
+MULInstruction::MULInstruction(uint32_t instruction, Cpu *cpu) : ArmInstruction(instruction, cpu){}
+
+int MULInstruction::run() {
+    if(ArmInstruction::run()) return -1;
+
+    cpu_register *rd = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 16));
+    cpu_register *rn = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 12));
+    cpu_register *rs = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 8));
+    cpu_register *rm = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
+
+    uint8_t A = GET_1_BIT_FROM_32_BITS(instruction, 21);
+    *rd = *rs * *rm + (A ? *rn : 0);
+
+    //set flags
+}

@@ -13,6 +13,9 @@ template<typename T> T SMALLEST_N_BITS_BIG(T x, uint32_t n){ return x << (sizeof
 template<typename T> T LARGEST_N_BITS_BIG(T x, uint32_t n){ return static_cast<T>((x >> (sizeof(x) * 8 - n))) << (sizeof(x) * 8 - n);}
 template<typename T> T LARGEST_N_BITS_SMALL(T x, uint32_t n){ return x >> (sizeof(x) * 8 - n);}
 
+#define GET_4_BITS_FROM_32_BITS(x, n) ((x << (28 - n)) >> 28)
+#define GET_1_BIT_FROM_32_BITS(x, n) ((x << (31 - n)) >> 31)
+
 cpu_register* number_to_register(Cpu *cpu, uint8_t n);
 
 #endif //GBE_HELPERS_H

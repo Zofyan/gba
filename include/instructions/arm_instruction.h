@@ -39,6 +39,14 @@ public:
 
 };
 
+class MULInstruction: public ArmInstruction {
+public:
+    inline static std::string operator_mask = "....000000..............1001....";
+    MULInstruction(uint32_t instruction, Cpu *cpu);
+    virtual int run();
+
+};
+
 
 
 #endif //GBE_ARM_INSTRUCTION_H
