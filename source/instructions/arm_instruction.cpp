@@ -2,7 +2,7 @@
 // Created by Sofyan on 26/08/2022.
 //
 
-#include "../../include/instructions/arm_isntruction.h"
+#include "../../include/instructions/arm_instruction.h"
 #include "bitset"
 #include "regex"
 
@@ -31,3 +31,8 @@ int BXInstruction::run() {
     cpu->registers.PC = number_to_register(cpu, instruction & 0x1111);
     return 0;
 }
+
+BXInstruction::BXInstruction(uint32_t instruction, Cpu *cpu) : ArmInstruction(instruction, cpu) {
+
+}
+

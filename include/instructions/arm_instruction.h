@@ -2,8 +2,8 @@
 // Created by Sofyan on 26/08/2022.
 //
 
-#ifndef GBE_ARM_ISNTRUCTION_H
-#define GBE_ARM_ISNTRUCTION_H
+#ifndef GBE_ARM_INSTRUCTION_H
+#define GBE_ARM_INSTRUCTION_H
 
 #include "instruction.h"
 #include "condition.h"
@@ -23,7 +23,7 @@ public:
     static ArmInstruction GetInstruction(uint32_t instruction, Cpu *cpu);
     static std::string operator_mask;
 
-    explicit ArmInstruction(uint32_t instruction, Cpu *cpu);
+    ArmInstruction(uint32_t instruction, Cpu *cpu);
     Condition condition = Condition(0);
 
 
@@ -34,11 +34,11 @@ public:
 class BXInstruction: public ArmInstruction {
 public:
     inline static std::string operator_mask = "....000100101111111111110001....";
-    explicit BXInstruction(uint32_t instruction, Cpu *cpu);
+    BXInstruction(uint32_t instruction, Cpu *cpu);
     virtual int run();
 
 };
 
 
 
-#endif //GBE_ARM_ISNTRUCTION_H
+#endif //GBE_ARM_INSTRUCTION_H
