@@ -55,4 +55,5 @@ int MULInstruction::run() {
         cpu->flags->n = GET_1_BIT_FROM_32_BITS(*rd, 31);
         cpu->flags->z = *rd == 0;
     }
+    return 0;
 }
