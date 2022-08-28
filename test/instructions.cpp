@@ -90,7 +90,7 @@ TEST_CASE("testing the MUL instruction") {
     Cpu cpu = Cpu(nullptr);
     *cpu.registers.r00 = 0;
     *cpu.registers.r01 = 5;
-    *cpu.registers.r02 = 6;
+    *cpu.registers.r02 = 7;
     *cpu.registers.r03 = 40;
 
     uint32_t inst;
