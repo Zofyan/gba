@@ -24,7 +24,7 @@ public:
     static std::string operator_mask;
 
     ArmInstruction(uint32_t instruction, Cpu *cpu);
-    Condition condition = Condition(0);
+    Condition condition{AL};
 
 
     virtual int run();

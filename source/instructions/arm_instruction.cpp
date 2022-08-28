@@ -2,6 +2,7 @@
 // Created by Sofyan on 26/08/2022.
 //
 
+#include <iostream>
 #include "../../include/instructions/arm_instruction.h"
 #include "bitset"
 #include "regex"
@@ -14,6 +15,27 @@ ArmInstruction::ArmInstruction(uint32_t instruction, Cpu *cpu) : Instruction() {
 }
 
 int ArmInstruction::run() {
+    if(condition.flags.z == SET_OR && condition.flags.c == CLEAR_OR){
+        if(cpu->flags->z || !cpu->flags->c) return 0;
+        return -1;
+    }
+    if((condition.flags.z == SET_OR && cpu->flags->z) || (condition.flags.c == CLEAR_OR && !cpu->flags->c)) return 0;
+
+    if(condition.flags.z == SET && !cpu->flags->z) return -1;
+    if(condition.flags.z == CLEAR && cpu->flags->z) return -1;
+
+    if(condition.flags.n == SET && !cpu->flags->n) return -1;
+    if(condition.flags.n == CLEAR && cpu->flags->n) return -1;
+
+    if(condition.flags.c == SET && !cpu->flags->c) return -1;
+    if(condition.flags.c == CLEAR && cpu->flags->c) return -1;
+
+    if(condition.flags.v == SET && !cpu->flags->v) return -1;
+    if(condition.flags.v == CLEAR && cpu->flags->v) return -1;
+
+    if(condition.flags.n == EQUAL && condition.flags.v == EQUAL && (cpu->flags->v != cpu->flags->n)) return -1;
+    if(condition.flags.n == NOT_EQUAL && condition.flags.v == NOT_EQUAL && (cpu->flags->v == cpu->flags->n)) return -1;
+
     return 0;
 }
 
