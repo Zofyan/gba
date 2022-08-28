@@ -78,7 +78,7 @@ TEST_CASE("testing the MUL instruction") {
     instruction = ArmInstruction::GetInstruction(inst, &cpu);
     instruction->run();
     CHECK(*cpu.registers.r00 == -10);
-    CHECK((cpu.flags->n == 1));
+    CHECK((cpu.flags->n == 2));
     CHECK((cpu.flags->z == 0));
 
     *cpu.registers.r03 = -30;
