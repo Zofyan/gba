@@ -17,5 +17,4 @@ template<typename T> T LARGEST_N_BITS_SMALL(T x, uint32_t n){ return x >> (sizeo
 #define GET_1_BIT_FROM_32_BITS(x, n) ((x << (31 - n)) >> 31)
 
 cpu_register* number_to_register(Cpu *cpu, uint8_t n);
-
 #endif //GBE_HELPERS_H

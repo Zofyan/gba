@@ -35,6 +35,7 @@ typedef struct registers{
     cpu_register *PC;
     cpu_register *LR;
     cpu_register *SP;
+    cpu_register *CPSR;
     struct r08_s{
         cpu_register *r;
         cpu_register *r_fiq;
@@ -71,6 +72,23 @@ typedef struct registers{
     } r14_s;
 } registers_t;
 
+typedef struct cpu_flags{
+    uint32_t n : 1;
+    uint32_t z : 1;
+    uint32_t c : 1;
+    uint32_t v : 1;
+    uint32_t q : 1;
+    uint32_t reserved0 : 2;
+    uint32_t j : 1;
+    uint32_t reserved1 : 13;
+    uint32_t e : 1;
+    uint32_t a : 1;
+    uint32_t i : 1;
+    uint32_t f : 1;
+    uint32_t t : 1;
+    uint32_t m4m0 : 4;
+} cpu_flags_t;
+
 enum cpu_mode_t{
     ARM,
     THUMB
@@ -81,6 +99,7 @@ public:
     Bus *bus;
     cpu_mode_t cpu_mode = ARM;
     registers_t registers;
+    cpu_flags_t *flags;
 
     bool keep_running = true;
 

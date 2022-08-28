@@ -51,5 +51,8 @@ int MULInstruction::run() {
     uint8_t A = GET_1_BIT_FROM_32_BITS(instruction, 21);
     *rd = *rs * *rm + (A ? *rn : 0);
 
-    //set flags
+    if(GET_1_BIT_FROM_32_BITS(instruction, 20)){
+        cpu->flags->n = GET_1_BIT_FROM_32_BITS(*rd, 31);
+        cpu->flags->z = *rd == 0;
+    }
 }

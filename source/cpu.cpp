@@ -58,5 +58,7 @@ void Cpu::init_registers() {
     registers.SP = registers.r13_s.r_fiq;
     registers.LR = registers.r14_s.r_fiq;
     registers.PC = (uint32_t*)calloc(4, 1);
+    registers.CPSR = (uint32_t*)calloc(4, 1);
+    flags = reinterpret_cast<cpu_flags_t *>(registers.CPSR);
 
 }
