@@ -35,7 +35,7 @@ class BXInstruction: public ArmInstruction {
 public:
     inline static std::string operator_mask = "....000100101111111111110001....";
     BXInstruction(uint32_t instruction, Cpu *cpu);
-    virtual int run();
+    int run();
 
 };
 
@@ -43,7 +43,7 @@ class MULInstruction: public ArmInstruction {
 public:
     inline static std::string operator_mask = "....000000..............1001....";
     MULInstruction(uint32_t instruction, Cpu *cpu);
-    virtual int run();
+    int run();
 
 };
 

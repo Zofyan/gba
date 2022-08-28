@@ -21,7 +21,7 @@ ArmInstruction* ArmInstruction::GetInstruction(uint32_t instruction, Cpu *cpu) {
     if(regex_match(static_cast<std::bitset<32>>(instruction).to_string(), std::regex(BXInstruction::operator_mask))){
         return new BXInstruction(instruction, cpu);
     }
-    if(regex_match(static_cast<std::bitset<32>>(instruction).to_string(), std::regex(MULInstruction::operator_mask))){
+    if(regex_match(std::bitset<32>(instruction).to_string(), std::regex(MULInstruction::operator_mask))){
         return new MULInstruction(instruction, cpu);
     }
     throw UnknownInstruction();
