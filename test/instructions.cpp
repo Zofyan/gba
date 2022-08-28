@@ -7,6 +7,66 @@
 #include "../include/instructions/arm_instruction.h"
 #include "test.h"
 
+TEST_CASE("testing the condition flags") {
+    Cpu cpu = Cpu(nullptr);
+    *cpu.registers.r00 = 0;
+    *cpu.registers.r01 = 5;
+    *cpu.registers.r02 = 6;
+
+    uint32_t inst;
+    ArmInstruction *instruction;
+
+    #define BEFORE_TEST(inst, a) (*(inst) = mul_instruction_int{2, 0b1001, 1, 0, 0, 0, 0, 0, a}.mul_instruction_int_t)
+
+    SUBCASE("instruction does not run"){
+        BEFORE_TEST(&inst, 0b0000);
+        cpu.flags->z = 0;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 0);
+        BEFORE_TEST(&inst, 0b0001);
+        cpu.flags->z = 1;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 0);
+        BEFORE_TEST(&inst, 0b0010);
+        cpu.flags->c = 0;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 0);
+        BEFORE_TEST(&inst, 0b0011);
+        cpu.flags->c = 1;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 0);
+
+    }
+
+    SUBCASE("instruction does run"){
+        BEFORE_TEST(&inst, 0b0000);
+        cpu.flags->z = 1;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 30);
+        BEFORE_TEST(&inst, 0b0001);
+        cpu.flags->z = 0;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 30);
+        BEFORE_TEST(&inst, 0b0010);
+        cpu.flags->c = 1;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 30);
+        BEFORE_TEST(&inst, 0b0011);
+        cpu.flags->c = 0;
+        instruction = ArmInstruction::GetInstruction(inst, &cpu);
+        instruction->run();
+        CHECK(*cpu.registers.r00 == 30);
+
+    }
+}
+
 TEST_CASE("testing the BX instruction") {
     Cpu cpu = Cpu(nullptr);
 
