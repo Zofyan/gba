@@ -22,3 +22,4 @@ add_executable(GBATEST test/test.cpp test/doctest/doctest.h include/cpu.h includ
         test/instructions.cpp)
 
 target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
+target_link_libraries(${PROJECT_NAME} ../sdl/lib/x86/SDL2)
