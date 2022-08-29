@@ -9,7 +9,8 @@
 #include "../include/instructions/arm_instruction.h"
 #include "test.h"
 
-#define BEFORE_TEST(inst, a) (*(inst) = mul_instruction_int{2, 0b1001, 1, 0, 0, 0, 0, 0, a}.mul_instruction_int_t)
+#define BEFORE_TEST(inst, a) (*(inst) = mul_instruction_int{2, 0b1001, 1, 0, 0, 0, 0, 0, 0, a}.mul_instruction_int_t)
+#define TWO_32BITS_TO_64BIT(a, b) ((uint64_t)a  << 32 | b)
 
 TEST_CASE("testing the condition flags") {
     Cpu cpu = Cpu(nullptr);
@@ -258,7 +259,7 @@ TEST_CASE("testing the BX instruction") {
 
 }
 
-TEST_CASE("testing the MUL instruction") {
+TEST_CASE("testing the MUL family instructions") {
     Cpu cpu = Cpu(nullptr);
     *cpu.registers.r00 = 0;
     *cpu.registers.r01 = 5;
@@ -276,11 +277,12 @@ TEST_CASE("testing the MUL instruction") {
                                0,
                                0,
                                0,
+                               0,
                                AL}.mul_instruction_int_t;
 
     instruction = ArmInstruction::GetInstruction(inst, &cpu);
     instruction->run();
-    SUBCASE("doing 5 * 6 ") { CHECK(*cpu.registers.r00 == 30); }
+    SUBCASE("MUL: doing 5 * 6 ") { CHECK(*cpu.registers.r00 == 30); }
 
     inst = mul_instruction_int{2,
                                0b1001,
@@ -290,10 +292,11 @@ TEST_CASE("testing the MUL instruction") {
                                1,
                                1,
                                0,
+                               0,
                                AL}.mul_instruction_int_t;
     instruction = ArmInstruction::GetInstruction(inst, &cpu);
     instruction->run();
-    SUBCASE("doing 5 * 6 + 40 ") {
+    SUBCASE("MULA: doing 5 * 6 + 40 ") {
         CHECK(*cpu.registers.r00 == 70);
         CHECK((cpu.flags->n == 0));
         CHECK((cpu.flags->z == 0));
@@ -307,10 +310,11 @@ TEST_CASE("testing the MUL instruction") {
                                1,
                                1,
                                0,
+                               0,
                                AL}.mul_instruction_int_t;
     instruction = ArmInstruction::GetInstruction(inst, &cpu);
     instruction->run();
-    SUBCASE("doing 5 * 6 - 40 ") {
+    SUBCASE("MULA: doing 5 * 6 - 40 ") {
         CHECK(*cpu.registers.r00 == -10);
         CHECK((cpu.flags->n == 1));
         CHECK((cpu.flags->z == 0));
@@ -325,12 +329,102 @@ TEST_CASE("testing the MUL instruction") {
                                1,
                                1,
                                0,
+                               0,
                                AL}.mul_instruction_int_t;
     instruction = ArmInstruction::GetInstruction(inst, &cpu);
     instruction->run();
-    SUBCASE("doing 5 * 6 - 30 ") {
+    SUBCASE("MULA: doing 5 * 6 - 30 ") {
         CHECK(*cpu.registers.r00 == 0);
         CHECK((cpu.flags->n == 0));
         CHECK((cpu.flags->z == 1));
+    }
+
+    *cpu.registers.r00 = 0;
+    *cpu.registers.r01 = 0;
+    *cpu.registers.r02 = 0xFFFFFFFF;
+    *cpu.registers.r03 = 0xFFFFFFFF;
+    inst = mul_instruction_int{2,
+                               0b1001,
+                               3,
+                               1,
+                               0,
+                               1,
+                               0,
+                               0b01,
+                               0,
+                               AL}.mul_instruction_int_t;
+    instruction = ArmInstruction::GetInstruction(inst, &cpu);
+    instruction->run();
+    SUBCASE("UMAAL: doing a 32*32 bit with 64 bit result, negative") {
+        uint64_t result = TWO_32BITS_TO_64BIT(*cpu.registers.r00, *cpu.registers.r01);
+
+        uint64_t expected_result = (uint64_t)0xFFFFFFFF * (uint64_t)0xFFFFFFFF;
+        CHECK(result == expected_result);
+        CHECK((cpu.flags->n == 1));
+        CHECK((cpu.flags->z == 0));
+    }
+
+    *cpu.registers.r00 = 0;
+    *cpu.registers.r01 = 0;
+    *cpu.registers.r02 = 1 << 30;
+    *cpu.registers.r03 = (1 << 30) + 100;
+    instruction = ArmInstruction::GetInstruction(inst, &cpu);
+    instruction->run();
+    SUBCASE("UMAAL: doing a 32*32 bit with 64 bit result ") {
+        uint64_t result = TWO_32BITS_TO_64BIT(*cpu.registers.r00, *cpu.registers.r01);
+
+        uint64_t expected_result = ((uint64_t)1 << 30) * (((uint64_t)1 << 30) + 100);
+        CHECK(result == expected_result);
+        CHECK((cpu.flags->n == 0));
+        CHECK((cpu.flags->z == 0));
+    }
+
+    *cpu.registers.r00 = 0;
+    *cpu.registers.r01 = 0;
+    *cpu.registers.r02 = 1 << 31;
+    *cpu.registers.r03 = 0;
+    instruction = ArmInstruction::GetInstruction(inst, &cpu);
+    instruction->run();
+    SUBCASE("UMAAL: doing a 32*32 bit with 64 bit result, result is 0 ") {
+        uint64_t result = TWO_32BITS_TO_64BIT(*cpu.registers.r00, *cpu.registers.r01);
+
+        uint64_t expected_result = 0;
+        CHECK(result == expected_result);
+        CHECK((cpu.flags->n == 0));
+        CHECK((cpu.flags->z == 1));
+    }
+
+    *cpu.registers.r00 = 0;
+    *cpu.registers.r01 = 0;
+    *cpu.registers.r02 = 1 << 31;
+    *cpu.registers.r03 = 128;
+    instruction = ArmInstruction::GetInstruction(inst, &cpu);
+    instruction->run();
+    SUBCASE("UMAAL: doing a 32*32 bit with 64 bit result, result Lo is 0 ") {
+        uint64_t result = TWO_32BITS_TO_64BIT(*cpu.registers.r00, *cpu.registers.r01);
+
+        uint64_t expected_result = 1;
+        expected_result <<= 31;
+        expected_result *= 128;
+        CHECK(result == expected_result);
+        CHECK((cpu.flags->n == 0));
+        CHECK((cpu.flags->z == 0));
+    }
+
+    *cpu.registers.r00 = 5;
+    *cpu.registers.r01 = 6;
+    *cpu.registers.r02 = 1 << 30;
+    *cpu.registers.r03 = (1 << 30) + 100;
+    instruction = ArmInstruction::GetInstruction(inst, &cpu);
+    instruction->run();
+    SUBCASE("UMAAL: doing a 32*32 bit with 64 bit result and some inital value in both starting registers ") {
+        uint64_t result = TWO_32BITS_TO_64BIT(*cpu.registers.r00, *cpu.registers.r01);
+
+        uint64_t expected_result = (uint64_t)1 << 30;
+        expected_result *= (1 << 30) + 100;
+        expected_result += 5 + 6;
+        CHECK(result == expected_result);
+        CHECK((cpu.flags->n == 0));
+        CHECK((cpu.flags->z == 0));
     }
 }

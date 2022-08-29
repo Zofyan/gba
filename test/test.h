@@ -15,7 +15,8 @@ union mul_instruction_int {
         uint32_t rd: 4;
         uint32_t s: 1;
         uint32_t a: 1;
-        uint32_t mask0: 6;
+        uint32_t specification: 2;
+        uint32_t mask0: 4;
         uint32_t cond: 4;
     } mul_instruction_t;
     uint32_t mul_instruction_int_t;
