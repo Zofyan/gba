@@ -65,7 +65,7 @@ Condition::Condition(uint8_t code) {
         case 0b1011:
             flags = {IGNORE, NOT_EQUAL, NOT_EQUAL, IGNORE};
             suffix = "LT";
-            description = "les than";
+            description = "less than";
             break;
         case 0b1100:
             flags = {IGNORE, EQUAL, EQUAL, CLEAR};
