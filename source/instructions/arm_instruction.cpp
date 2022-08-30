@@ -87,12 +87,27 @@ int MULInstruction::run() {
             *rd = (temp >> 32);
             *rn = temp;
             break;
+        case 0b0100:
+            temp = *rs;
+            temp *= *rm;
+
+            *rd = (temp >> 32);
+            *rn = temp;
+            break;
+        case 0b0101:
+            temp = *rs;
+            temp *= *rm;
+            temp += ((uint64_t)*rd << 32) | *rn;
+
+            *rd = (temp >> 32);
+            *rn = temp;
+            break;
         default:
             assert(false);
             break;
     }
 
-    if(GET_1_BIT_FROM_32_BITS(instruction, 20)){
+    if(GET_1_BIT_FROM_32_BITS(instruction, 20) && subcode != 0b0010){
         if(subcode > 1){
             cpu->flags->z = *rd == 0 && *rn == 0;
         } else {
