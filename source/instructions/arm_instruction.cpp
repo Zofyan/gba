@@ -70,12 +70,50 @@ int MULInstruction::run() {
     cpu_register *rs = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 8));
     cpu_register *rm = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
 
-    uint8_t A = GET_1_BIT_FROM_32_BITS(instruction, 21);
-    *rd = *rs * *rm + (A ? *rn : 0);
+    uint8_t subcode = GET_4_BITS_FROM_32_BITS(instruction, 21);
+    uint64_t temp;
+    switch (subcode) {
+        case 0b0000:
+            *rd = *rs * *rm;
+            break;
+        case 0b0001:
+            *rd = *rs * *rm + *rn;
+            break;
+        case 0b0010:
+            temp = *rs;
+            temp *= *rm;
+            temp += *rd + *rn;
 
-    if(GET_1_BIT_FROM_32_BITS(instruction, 20)){
+            *rd = (temp >> 32);
+            *rn = temp;
+            break;
+        case 0b0100:
+            temp = *rs;
+            temp *= *rm;
+
+            *rd = (temp >> 32);
+            *rn = temp;
+            break;
+        case 0b0101:
+            temp = *rs;
+            temp *= *rm;
+            temp += ((uint64_t)*rd << 32) | *rn;
+
+            *rd = (temp >> 32);
+            *rn = temp;
+            break;
+        default:
+            assert(false);
+            break;
+    }
+
+    if(GET_1_BIT_FROM_32_BITS(instruction, 20) && subcode != 0b0010){
+        if(subcode > 1){
+            cpu->flags->z = *rd == 0 && *rn == 0;
+        } else {
+            cpu->flags->z = *rd == 0;
+        }
         cpu->flags->n = GET_1_BIT_FROM_32_BITS(*rd, 31);
-        cpu->flags->z = *rd == 0;
     }
     return 0;
 }

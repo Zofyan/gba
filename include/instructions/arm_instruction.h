@@ -41,7 +41,7 @@ public:
 
 class MULInstruction: public ArmInstruction {
 public:
-    inline static std::string operator_mask = "....000000..............1001....";
+    inline static std::string operator_mask = "....000.................1001....";
     MULInstruction(uint32_t instruction, Cpu *cpu);
     int run();
 
