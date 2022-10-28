@@ -117,3 +117,34 @@ int MULInstruction::run() {
     }
     return 0;
 }
+
+ALUInstruction::ALUInstruction(uint32_t instruction, Cpu *cpu) : ArmInstruction(instruction, cpu){}
+
+int ALUInstruction::run() {
+    if(ArmInstruction::run()) return -1;
+
+    uint32_t first_operand, second_operand = 0;
+    cpu_register *destination_register;
+
+    first_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 16));
+    destination_register = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 12));
+
+    shift_t shift_type;
+    uint16_t shift_amount;
+
+    if(GET_1_BIT_FROM_32_BITS(instruction, 25)){ // immediate second
+        second_operand = GET_8_BITS_FROM_32_BITS(instruction, 0);
+        shift_type = static_cast<shift_t>(GET_2_BIT_FROM_32_BITS(instruction, 5));
+        if(GET_1_BIT_FROM_32_BITS(instruction, 4)){ // shift by register
+            assert(GET_1_BIT_FROM_32_BITS(instruction, 7) == 0);
+            assert(GET_4_BITS_FROM_32_BITS(instruction, 8) < 15);
+            shift_amount = (*number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 8))) & 0xFF;
+        } else{ // shift by immediate
+            shift_amount = GET_5_BITS_FROM_32_BITS(instruction, 7);
+        }
+    } else{ // register second
+        second_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
+        shift_type = ROR;
+        shift_amount = GET_4_BITS_FROM_32_BITS(instruction, 8) * 2;
+    }
+}

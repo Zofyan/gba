@@ -16,6 +16,11 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
     *cpu.registers.r00 = 0;
     *cpu.registers.r01 = 25;
 
+    cpu.flags->v = 0;
+    cpu.flags->c = 0;
+    cpu.flags->z = 0;
+    cpu.flags->n = 0;
+
     uint32_t inst;
     ArmInstruction *instruction;
     uint32_t expected_result;
@@ -119,6 +124,10 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
                 instruction->run();
                 expected_result = 12345 & (3254779937);
                 CHECK(*cpu.registers.r00 == expected_result);
+            }
+
+            SUBCASE("exceptions, 0-immediate shifts"){
+
             }
 
         }
