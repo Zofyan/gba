@@ -11,7 +11,7 @@
 
 #define TWO_32BITS_TO_64BIT(a, b) ((uint64_t)(a)  << 32 | (b))
 
-TEST_CASE("testing the ALU family instructions") {
+TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/gbatek.htm#armopcodesdataprocessingalu
     Cpu cpu = Cpu(nullptr);
     *cpu.registers.r00 = 0;
     *cpu.registers.r01 = 25;
