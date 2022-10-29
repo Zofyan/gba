@@ -139,6 +139,10 @@ int ALUInstruction::run() {
 
     if(GET_1_BIT_FROM_32_BITS(instruction, 25)){ // immediate second
         second_operand = GET_8_BITS_FROM_32_BITS(instruction, 0);
+        shift_type = ROR;
+        shift_amount = GET_4_BITS_FROM_32_BITS(instruction, 8) * 2;
+    } else{ // register second
+        second_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
         shift_type = static_cast<shift_t>(GET_2_BIT_FROM_32_BITS(instruction, 5));
         if(GET_1_BIT_FROM_32_BITS(instruction, 4)){ // shift by register
             assert(GET_1_BIT_FROM_32_BITS(instruction, 7) == 0);
@@ -147,15 +151,12 @@ int ALUInstruction::run() {
         } else{ // shift by immediate
             shift_amount = GET_5_BITS_FROM_32_BITS(instruction, 7);
         }
-    } else{ // register second
-        second_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
-        shift_type = ROR;
-        shift_amount = GET_4_BITS_FROM_32_BITS(instruction, 8) * 2;
     }
 
     switch(shift_type){
         case LSL:
             second_operand = second_operand << shift_amount;
+
             break;
         case LSR:
         case ASR:
