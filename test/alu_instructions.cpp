@@ -16,16 +16,82 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
     *cpu.registers.r00 = 0;
     *cpu.registers.r01 = 25;
 
-    cpu.flags->v = 0;
-    cpu.flags->c = 0;
-    cpu.flags->z = 0;
-    cpu.flags->n = 0;
 
     uint32_t inst;
     ArmInstruction *instruction;
     uint32_t expected_result;
 
     SUBCASE("AND") {
+        SUBCASE("test flag setting"){
+            *cpu.registers.r02 = 1;
+            cpu.flags->v = 0;
+            cpu.flags->c = 1;
+            cpu.flags->z = 1;
+            cpu.flags->n = 1;
+            inst = alu_instruction_int_i_is_0{2,
+                                              0,
+                                              0,
+                                              0,
+                                              0,
+                                              1,
+                                              1,
+                                              0b0000,
+                                              0,
+                                              0,
+                                              AL}.alu_instruction_int_i_is_0_t;
+            instruction = ArmInstruction::GetInstruction(inst, &cpu);
+            instruction->run();
+            CHECK((cpu.flags->v == 0));
+            CHECK((cpu.flags->z == 0));
+            CHECK((cpu.flags->n == 0));
+            CHECK((cpu.flags->c == 0));
+
+            *cpu.registers.r02 = 1;
+            cpu.flags->v = 1;
+            cpu.flags->c = 0;
+            cpu.flags->z = 0;
+            cpu.flags->n = 1;
+            inst = alu_instruction_int_i_is_0{2,
+                                              0,
+                                              LSR,
+                                              1,
+                                              0,
+                                              1,
+                                              1,
+                                              0b0000,
+                                              0,
+                                              0,
+                                              AL}.alu_instruction_int_i_is_0_t;
+            instruction = ArmInstruction::GetInstruction(inst, &cpu);
+            instruction->run();
+            CHECK((cpu.flags->v == 1));
+            CHECK((cpu.flags->z == 1));
+            CHECK((cpu.flags->n == 0));
+            CHECK((cpu.flags->c == 1));
+
+            *cpu.registers.r02 = 1;
+            cpu.flags->v = 1;
+            cpu.flags->c = 1;
+            cpu.flags->z = 1;
+            cpu.flags->n = 0;
+            inst = alu_instruction_int_i_is_0{2,
+                                              0,
+                                              LSL,
+                                              31,
+                                              0,
+                                              1,
+                                              1,
+                                              0b0000,
+                                              0,
+                                              0,
+                                              AL}.alu_instruction_int_i_is_0_t;
+            instruction = ArmInstruction::GetInstruction(inst, &cpu);
+            instruction->run();
+            CHECK((cpu.flags->v == 1));
+            CHECK((cpu.flags->z == 0));
+            CHECK((cpu.flags->n == 1));
+            CHECK((cpu.flags->c == 0));
+        }
         SUBCASE("register operand") {
             SUBCASE("doing 25(r1) & 6") {
                 *cpu.registers.r02 = 6;
@@ -127,7 +193,23 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
             }
 
             SUBCASE("exceptions, 0-immediate shifts"){
-
+                *cpu.registers.r01 = 12345;
+                *cpu.registers.r02 = 4321;
+                inst = alu_instruction_int_i_is_0{2,
+                                                  0,
+                                                  3,
+                                                  7,
+                                                  0,
+                                                  1,
+                                                  1,
+                                                  0b0000,
+                                                  0,
+                                                  0,
+                                                  AL}.alu_instruction_int_i_is_0_t;
+                instruction = ArmInstruction::GetInstruction(inst, &cpu);
+                instruction->run();
+                expected_result = 12345 & (3254779937);
+                //CHECK(*cpu.registers.r00 == expected_result);
             }
 
         }
