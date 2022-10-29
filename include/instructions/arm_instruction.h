@@ -53,7 +53,7 @@ public:
 
 class ALUInstruction: public ArmInstruction {
 public:
-    inline static std::string operator_mask = "....000.................1001....";
+    inline static std::string operator_mask = "....00..........................";
     ALUInstruction(uint32_t instruction, Cpu *cpu);
     int run();
 

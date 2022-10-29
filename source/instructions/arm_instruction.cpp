@@ -46,6 +46,9 @@ ArmInstruction* ArmInstruction::GetInstruction(uint32_t instruction, Cpu *cpu) {
     if(regex_match(std::bitset<32>(instruction).to_string(), std::regex(MULInstruction::operator_mask))){
         return new MULInstruction(instruction, cpu);
     }
+    if(regex_match(std::bitset<32>(instruction).to_string(), std::regex(ALUInstruction::operator_mask))){
+        return new ALUInstruction(instruction, cpu);
+    }
     throw UnknownInstruction();
 }
 
@@ -125,7 +128,9 @@ int ALUInstruction::run() {
 
     uint32_t first_operand, second_operand = 0;
     cpu_register *destination_register;
+    uint8_t opcode;
 
+    opcode = GET_4_BITS_FROM_32_BITS(instruction, 21);
     first_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 16));
     destination_register = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 12));
 
@@ -146,5 +151,26 @@ int ALUInstruction::run() {
         second_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
         shift_type = ROR;
         shift_amount = GET_4_BITS_FROM_32_BITS(instruction, 8) * 2;
+    }
+
+    switch(shift_type){
+        case LSL:
+            second_operand = second_operand << shift_amount;
+            break;
+        case LSR:
+        case ASR:
+            second_operand = second_operand >> shift_amount;
+            break;
+        case ROR:
+            second_operand = (second_operand >> shift_amount) | (second_operand << (32 - shift_amount));
+            break;
+    }
+
+    switch (opcode) {
+        case 0x0: // AND
+            *destination_register = first_operand & (shift_type == ASR ? (int32_t)second_operand : second_operand);
+            break;
+        default:
+            break;
     }
 }

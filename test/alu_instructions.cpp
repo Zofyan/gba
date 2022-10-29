@@ -14,7 +14,6 @@
 TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/gbatek.htm#armopcodesdataprocessingalu
     Cpu cpu = Cpu(nullptr);
     *cpu.registers.r00 = 0;
-    *cpu.registers.r01 = 25;
 
 
     uint32_t inst;
@@ -23,6 +22,7 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
 
     SUBCASE("AND") {
         SUBCASE("test flag setting"){
+            *cpu.registers.r01 = 2;
             *cpu.registers.r02 = 1;
             cpu.flags->v = 0;
             cpu.flags->c = 1;
@@ -93,8 +93,9 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
             CHECK((cpu.flags->c == 0));
         }
         SUBCASE("register operand") {
+            *cpu.registers.r01 = 12345;
+            *cpu.registers.r02 = 54321;
             SUBCASE("doing 25(r1) & 6") {
-                *cpu.registers.r02 = 6;
                 inst = alu_instruction_int_i_is_0{2,
                                                   0,
                                                   0,
@@ -108,13 +109,13 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
                                                   AL}.alu_instruction_int_i_is_0_t;
                 instruction = ArmInstruction::GetInstruction(inst, &cpu);
                 instruction->run();
-                expected_result = 25 & 6;
+                expected_result = 12345 & 54321;
                 CHECK(*cpu.registers.r00 == expected_result);
             }
 
             SUBCASE("doing 25(r1) & 6, left shift logical 7") {
                 *cpu.registers.r01 = 12345;
-                *cpu.registers.r02 = 4321;
+                *cpu.registers.r02 = 54321;
                 inst = alu_instruction_int_i_is_0{2,
                                                   0,
                                                   0,
@@ -128,13 +129,13 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
                                                   AL}.alu_instruction_int_i_is_0_t;
                 instruction = ArmInstruction::GetInstruction(inst, &cpu);
                 instruction->run();
-                expected_result = 12345 & (4321 << 7);
+                expected_result = 12345 & (54321 << 7);
                 CHECK(*cpu.registers.r00 == expected_result);
             }
 
             SUBCASE("doing 25(r1) & 6, right shift logical 7") {
                 *cpu.registers.r01 = 12345;
-                *cpu.registers.r02 = 4321;
+                *cpu.registers.r02 = 54321;
                 inst = alu_instruction_int_i_is_0{2,
                                                   0,
                                                   1,
@@ -148,13 +149,13 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
                                                   AL}.alu_instruction_int_i_is_0_t;
                 instruction = ArmInstruction::GetInstruction(inst, &cpu);
                 instruction->run();
-                expected_result = 12345 & (4321 >> 7);
+                expected_result = 12345 & (54321 >> 7);
                 CHECK(*cpu.registers.r00 == expected_result);
             }
 
             SUBCASE("doing 25(r1) & 6, right shift arithmetic 7") {
                 *cpu.registers.r01 = 12345;
-                *cpu.registers.r02 = -4321;
+                *cpu.registers.r02 = -54321;
                 inst = alu_instruction_int_i_is_0{2,
                                                   0,
                                                   2,
@@ -168,7 +169,7 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
                                                   AL}.alu_instruction_int_i_is_0_t;
                 instruction = ArmInstruction::GetInstruction(inst, &cpu);
                 instruction->run();
-                expected_result = 12345 & (-4321 >> 7);
+                expected_result = 12345 & (-54321 >> 7);
                 CHECK(*cpu.registers.r00 == expected_result);
             }
 
@@ -215,8 +216,9 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
         }
 
         SUBCASE("immediate operand") {
+            *cpu.registers.r01 = 12345;
             SUBCASE("doing 25(r1) & 6") {
-                inst = alu_instruction_int_i_is_1{6,
+                inst = alu_instruction_int_i_is_1{49,
                                                   0,
                                                   0,
                                                   1,
@@ -227,6 +229,7 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
                                                   AL}.alu_instruction_int_i_is_1_t;
                 instruction = ArmInstruction::GetInstruction(inst, &cpu);
                 instruction->run();
+                expected_result = 12345 & 49;
                 CHECK(*cpu.registers.r00 == expected_result);
             }
             SUBCASE("doing 25(r1) & 6, ror-shift 1(2)") {
@@ -242,7 +245,7 @@ TEST_CASE("testing the ALU family instructions") { // https://problemkaputt.de/g
                                                   AL}.alu_instruction_int_i_is_1_t;
                 instruction = ArmInstruction::GetInstruction(inst, &cpu);
                 instruction->run();
-                expected_result = 25 & 2147483649;
+                expected_result = 12345 & 2147483649;
                 CHECK(*cpu.registers.r00 == expected_result);
             }
         }
