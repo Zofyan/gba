@@ -129,10 +129,12 @@ int ALUInstruction::run() {
     uint32_t first_operand, second_operand = 0;
     cpu_register *destination_register;
     uint8_t opcode;
+    bool set_flags;
 
     opcode = GET_4_BITS_FROM_32_BITS(instruction, 21);
     first_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 16));
     destination_register = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 12));
+    set_flags = GET_1_BIT_FROM_32_BITS(instruction, 20);
 
     shift_t shift_type;
     uint16_t shift_amount;
@@ -153,17 +155,20 @@ int ALUInstruction::run() {
         }
     }
 
+    bool carry;
     switch(shift_type){
         case LSL:
             second_operand = second_operand << shift_amount;
-
+            carry = (((1 << 31) >> shift_amount) & second_operand) != 0;
             break;
         case LSR:
         case ASR:
             second_operand = second_operand >> shift_amount;
+            carry = ((1 << shift_amount) & second_operand) != 0;
             break;
         case ROR:
             second_operand = (second_operand >> shift_amount) | (second_operand << (32 - shift_amount));
+            carry = ((1 << shift_amount) & second_operand) != 0;
             break;
     }
 
@@ -174,4 +179,17 @@ int ALUInstruction::run() {
         default:
             break;
     }
+
+    if(set_flags){
+        cpu->flags->z = *destination_register == 0;
+        cpu->flags->n = *destination_register < 0;
+        carry = shift_amount != 0 && carry;
+        switch(opcode){
+            case 0x0:
+            case 0x1:
+                cpu->flags->n = carry;
+                break;
+        }
+    }
+    return 0;
 }
