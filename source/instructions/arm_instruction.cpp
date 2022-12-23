@@ -46,6 +46,9 @@ ArmInstruction* ArmInstruction::GetInstruction(uint32_t instruction, Cpu *cpu) {
     if(regex_match(std::bitset<32>(instruction).to_string(), std::regex(MULInstruction::operator_mask))){
         return new MULInstruction(instruction, cpu);
     }
+    if(regex_match(std::bitset<32>(instruction).to_string(), std::regex(ALUInstruction::operator_mask))){
+        return new ALUInstruction(instruction, cpu);
+    }
     throw UnknownInstruction();
 }
 
@@ -114,6 +117,79 @@ int MULInstruction::run() {
             cpu->flags->z = *rd == 0;
         }
         cpu->flags->n = GET_1_BIT_FROM_32_BITS(*rd, 31);
+    }
+    return 0;
+}
+
+ALUInstruction::ALUInstruction(uint32_t instruction, Cpu *cpu) : ArmInstruction(instruction, cpu){}
+
+int ALUInstruction::run() {
+    if(ArmInstruction::run()) return -1;
+
+    uint32_t first_operand, second_operand = 0;
+    cpu_register *destination_register;
+    uint8_t opcode;
+    bool set_flags;
+
+    opcode = GET_4_BITS_FROM_32_BITS(instruction, 21);
+    first_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 16));
+    destination_register = number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 12));
+    set_flags = GET_1_BIT_FROM_32_BITS(instruction, 20);
+
+    shift_t shift_type;
+    uint16_t shift_amount;
+
+    if(GET_1_BIT_FROM_32_BITS(instruction, 25)){ // immediate second
+        second_operand = GET_8_BITS_FROM_32_BITS(instruction, 0);
+        shift_type = ROR;
+        shift_amount = GET_4_BITS_FROM_32_BITS(instruction, 8) * 2;
+    } else{ // register second
+        second_operand = *number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 0));
+        shift_type = static_cast<shift_t>(GET_2_BIT_FROM_32_BITS(instruction, 5));
+        if(GET_1_BIT_FROM_32_BITS(instruction, 4)){ // shift by register
+            assert(GET_1_BIT_FROM_32_BITS(instruction, 7) == 0);
+            assert(GET_4_BITS_FROM_32_BITS(instruction, 8) < 15);
+            shift_amount = (*number_to_register(cpu, GET_4_BITS_FROM_32_BITS(instruction, 8))) & 0xFF;
+        } else{ // shift by immediate
+            shift_amount = GET_5_BITS_FROM_32_BITS(instruction, 7);
+        }
+    }
+
+    bool carry;
+    switch(shift_type){
+        case LSL:
+            second_operand = second_operand << shift_amount;
+            carry = (((1 << 31) >> shift_amount) & second_operand) != 0;
+            break;
+        case LSR:
+        case ASR:
+            second_operand = second_operand >> shift_amount;
+            carry = ((1 << shift_amount) & second_operand) != 0;
+            break;
+        case ROR:
+            second_operand = (second_operand >> shift_amount) | (second_operand << (32 - shift_amount));
+            carry = ((1 << shift_amount) & second_operand) != 0;
+            break;
+    }
+
+    switch (opcode) {
+        case 0x0: // AND
+            *destination_register = first_operand & (shift_type == ASR ? (int32_t)second_operand : second_operand);
+            break;
+        default:
+            break;
+    }
+
+    if(set_flags){
+        cpu->flags->z = *destination_register == 0;
+        cpu->flags->n = *destination_register < 0;
+        carry = shift_amount != 0 && carry;
+        switch(opcode){
+            case 0x0:
+            case 0x1:
+                cpu->flags->n = carry;
+                break;
+        }
     }
     return 0;
 }

@@ -12,7 +12,12 @@
 #include "../cpu.h"
 #include "regex"
 
-
+typedef enum shift{
+    LSL = 0,
+    LSR = 1,
+    ASR = 2,
+    ROR = 3
+} shift_t;
 
 
 class ArmInstruction: public Instruction {
@@ -25,7 +30,6 @@ public:
 
     ArmInstruction(uint32_t instruction, Cpu *cpu);
     Condition condition{AL};
-
 
     virtual int run();
 
@@ -43,6 +47,14 @@ class MULInstruction: public ArmInstruction {
 public:
     inline static std::string operator_mask = "....000.................1001....";
     MULInstruction(uint32_t instruction, Cpu *cpu);
+    int run();
+
+};
+
+class ALUInstruction: public ArmInstruction {
+public:
+    inline static std::string operator_mask = "....00..........................";
+    ALUInstruction(uint32_t instruction, Cpu *cpu);
     int run();
 
 };
